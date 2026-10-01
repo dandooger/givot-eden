@@ -1,0 +1,110 @@
+// All the game content: what you can build, buy, where you can work and travel.
+window.DATA = {
+  days: ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'],
+
+  // Public buildings the head of the settlement can build (paid from the settlement budget).
+  // happy = how much the settlement likes it, income = per week to the budget, upkeep = per week, days = building time
+  facilities: {
+    synagogue: { name: 'בית כנסת', icon: '🕍', cost: 350000, days: 4, happy: 12, upkeep: 2000, color: '#e9d8a6', desc: 'מקום לתפילות שחרית, מנחה וערבית ולקבלת שבת.' },
+    grocery: { name: 'מכולת', icon: '🛒', cost: 180000, days: 2, happy: 7, income: 6000, color: '#f4a261', desc: 'לא צריך לנסוע לקניות! מוריד את הוצאות הבית ומכניס כסף לקופה.' },
+    playground: { name: 'גן שעשועים', icon: '🛝', cost: 90000, days: 1, happy: 6, upkeep: 500, color: '#90be6d', desc: 'נדנדות, מגלשות וארגז חול. הילדים שמחים!' },
+    kindergarten: { name: 'גן ילדים', icon: '🧸', cost: 220000, days: 3, happy: 7, upkeep: 1500, color: '#f9c74f', desc: 'הקטנים (גילאי 3-5) הולכים לגן בתוך היישוב.' },
+    school: { name: 'בית ספר', icon: '🏫', cost: 700000, days: 6, happy: 13, upkeep: 4000, color: '#577590', desc: 'בית ספר יסודי ביישוב. הילדים לא צריכים הסעה!', stars: 2 },
+    bneiakiva: { name: 'סניף בני עקיבא', icon: '🔵', cost: 150000, days: 2, happy: 9, upkeep: 800, color: '#3a6ea5', desc: 'סניף לכל ילדי היישוב! פעולות בשבת, מחנות וקומזיצים.' },
+    mikveh: { name: 'מקווה', icon: '💧', cost: 260000, days: 3, happy: 5, upkeep: 1000, color: '#a8dadc', desc: 'מקווה ליישוב.' },
+    clinic: { name: 'מרפאה', icon: '🩺', cost: 320000, days: 3, happy: 8, upkeep: 2000, color: '#e5e5e5', desc: 'רופא ואחות ביישוב — לא צריך לנסוע לבית שמש.' },
+    garden: { name: 'גינה ציבורית', icon: '🌳', cost: 50000, days: 1, happy: 3, upkeep: 200, color: '#52b788', desc: 'דשא, עצים וספסלים.' },
+    football: { name: 'מגרש כדורגל', icon: '⚽', cost: 160000, days: 2, happy: 6, upkeep: 600, color: '#2d6a4f', desc: 'מגרש כדורגל וכדורסל לנוער.' },
+    library: { name: 'ספרייה', icon: '📚', cost: 120000, days: 2, happy: 4, upkeep: 500, color: '#b5838d', desc: 'ספרים לכל הגילאים וחדר עיון שקט.' },
+    pizzeria: { name: 'פיצריה', icon: '🍕', cost: 140000, days: 2, happy: 5, income: 5000, color: '#e76f51', desc: 'פיצה ביישוב! מכניסה כסף לקופה.' },
+    busstop: { name: 'תחנת אוטובוס', icon: '🚏', cost: 40000, days: 1, happy: 2, color: '#adb5bd', desc: 'עוד תחנה בתוך היישוב.' },
+    community: { name: 'מתנ"ס', icon: '🎭', cost: 400000, days: 4, happy: 9, upkeep: 2500, color: '#cdb4db', desc: 'חוגים, הצגות ואירועים לכל היישוב.', stars: 2 },
+    houses: { name: 'שכונה חדשה (4 בתים)', icon: '🏘️', cost: 450000, days: 4, happy: 0, families: 4, color: '#d98c6a', desc: 'עוד 4 בתים — עוד משפחות יכולות לעבור לגור ביישוב!' },
+    gas: { name: 'תחנת דלק', icon: '⛽', cost: 300000, days: 3, happy: 3, income: 7000, color: '#ffb703', desc: 'מכניסה הרבה כסף לקופה.', stars: 2 },
+    pool: { name: 'בריכה', icon: '🏊', cost: 600000, days: 5, happy: 11, income: 3000, upkeep: 2500, color: '#48cae4', desc: 'בריכה עם שעות נפרדות. כולם אוהבים!', stars: 3 },
+    yeshiva: { name: 'ישיבה תיכונית', icon: '📖', cost: 800000, days: 6, happy: 10, upkeep: 3000, color: '#8d99ae', desc: 'ישיבה לבני הנוער של היישוב והסביבה.', stars: 3 },
+  },
+
+  // Things for your own house (paid from your own money).
+  shop: [
+    { id: 'sofa', room: 'living', name: 'ספה', icon: '🛋️', cost: 6000, happy: 5 },
+    { id: 'tv', room: 'living', name: 'טלוויזיה', icon: '📺', cost: 4500, happy: 5 },
+    { id: 'table', room: 'living', name: 'שולחן שבת גדול', icon: '🍽️', cost: 8000, happy: 6, shabbat: true },
+    { id: 'books', room: 'living', name: 'ארון ספרי קודש', icon: '📚', cost: 3000, happy: 3 },
+    { id: 'piano', room: 'living', name: 'פסנתר', icon: '🎹', cost: 25000, happy: 7 },
+    { id: 'fridge', room: 'kitchen', name: 'מקרר', icon: '🧊', cost: 9000, happy: 4 },
+    { id: 'plata', room: 'kitchen', name: 'פלטה לשבת', icon: '♨️', cost: 400, happy: 3, shabbat: true },
+    { id: 'oven', room: 'kitchen', name: 'תנור', icon: '🔥', cost: 5000, happy: 3 },
+    { id: 'dishwasher', room: 'kitchen', name: 'מדיח כלים', icon: '🫧', cost: 3500, happy: 4 },
+    { id: 'bed', room: 'bedroom', name: 'מיטה זוגית', icon: '🛏️', cost: 7000, happy: 4 },
+    { id: 'closet', room: 'bedroom', name: 'ארון בגדים', icon: '🚪', cost: 5000, happy: 2 },
+    { id: 'ac', room: 'bedroom', name: 'מזגן', icon: '❄️', cost: 4000, happy: 5 },
+    { id: 'bunk', room: 'kids', name: 'מיטות קומתיים', icon: '🪜', cost: 3500, happy: 4 },
+    { id: 'toys', room: 'kids', name: 'ארגז צעצועים', icon: '🧸', cost: 800, happy: 4 },
+    { id: 'console', room: 'kids', name: 'פלייסטיישן', icon: '🎮', cost: 2500, happy: 6 },
+    { id: 'desk', room: 'kids', name: 'שולחן לשיעורי בית', icon: '✏️', cost: 1200, happy: 2 },
+    { id: 'swing', room: 'yard', name: 'נדנדה', icon: '🎠', cost: 2000, happy: 4 },
+    { id: 'tramp', room: 'yard', name: 'טרמפולינה', icon: '🤸', cost: 1800, happy: 5 },
+    { id: 'bbq', room: 'yard', name: 'מנגל', icon: '🍖', cost: 900, happy: 3 },
+    { id: 'sukkah', room: 'yard', name: 'סוכה', icon: '🌿', cost: 3000, happy: 4 },
+    { id: 'pergola', room: 'yard', name: 'פרגולה', icon: '⛱️', cost: 12000, happy: 4 },
+    { id: 'dog', room: 'yard', name: 'כלב', icon: '🐕', cost: 1500, happy: 7 },
+    { id: 'solar', room: 'reno', name: 'פאנלים סולאריים', icon: '☀️', cost: 40000, happy: 2, saves: 400 },
+    { id: 'room', room: 'reno', name: 'תוספת חדר', icon: '🧱', cost: 120000, happy: 8 },
+    { id: 'kitchen2', room: 'reno', name: 'מטבח חדש', icon: '🍳', cost: 60000, happy: 6 },
+  ],
+  rooms: { living: 'סלון', kitchen: 'מטבח', bedroom: 'חדר שינה', kids: 'חדר ילדים', yard: 'חצר', reno: 'שיפוצים' },
+
+  cars: [
+    { id: 'bike', name: 'אופניים חשמליים', icon: '🛵', cost: 5000, seats: 1, speed: 0.8 },
+    { id: 'i10', name: 'יונדאי i10', icon: '🚗', cost: 75000, seats: 4, speed: 1 },
+    { id: 'octavia', name: 'סקודה אוקטביה', icon: '🚙', cost: 135000, seats: 5, speed: 1.1 },
+    { id: 'tesla', name: 'טסלה מודל 3', icon: '⚡', cost: 190000, seats: 5, speed: 1.4, electric: true },
+    { id: 'carnival', name: 'קיה קרניבל (7 מקומות)', icon: '🚐', cost: 210000, seats: 7, speed: 1 },
+    { id: 'jeep', name: 'ג׳יפ', icon: '🛻', cost: 320000, seats: 5, speed: 1.2 },
+  ],
+
+  // pay = shekels per work day; where: 'out' = outside the settlement, 'fields' = the fields next to it, 'school' = the settlement school
+  jobs: [
+    { id: 'hitech', name: 'מתכנת/ת בהייטק', place: 'ירושלים', pay: 1400, where: 'out', icon: '💻' },
+    { id: 'doctor', name: 'רופא/ה', place: 'בית החולים הדסה עין כרם', pay: 1600, where: 'out', icon: '🩺' },
+    { id: 'builder', name: 'קבלן/ית בניין', place: 'בית שמש', pay: 1100, where: 'out', icon: '👷', perk: 'מבנים ביישוב נבנים מהר יותר' },
+    { id: 'teacher', name: 'מורה', place: 'צור הדסה (או בית הספר ביישוב)', pay: 650, where: 'school', icon: '👩‍🏫', perk: 'אם יש בית ספר ביישוב — הולכים ברגל' },
+    { id: 'farmer', name: 'חקלאי/ת', place: 'השדות ליד היישוב', pay: 700, where: 'fields', icon: '🚜', perk: 'הולכים לשדה ברגל, לא צריך רכב' },
+    { id: 'driver', name: 'נהג/ת אוטובוס', place: 'בית שמש', pay: 800, where: 'out', icon: '🚌' },
+  ],
+
+  trips: [
+    { id: 'nature', name: 'טיול בנחל האלה', icon: '🏞️', cost: 0, hours: 3, happy: 10, needCar: false, text: 'יצאתם ברגל מהיישוב לטיול בטבע. מצאתם צב, אכלתם סנדוויצ׳ים מתחת לעץ אלון וחזרתם עייפים ומרוצים!' },
+    { id: 'tzur', name: 'מרכז מסחרי צור הדסה', icon: '🛍️', cost: 250, hours: 1.5, happy: 4, bus: true, text: 'קניתם גלידה וכמה דברים לבית. הילדים ביקשו עוד ממתקים 🍭' },
+    { id: 'kotel', name: 'הכותל המערבי, ירושלים', icon: '🕍', cost: 200, hours: 4, happy: 14, bus: true, text: 'התפללתם ליד הכותל, שמתם פתק בין האבנים וטיילתם ברובע היהודי. חוויה מרגשת!' },
+    { id: 'zoo', name: 'גן החיות התנ״כי', icon: '🦒', cost: 600, hours: 4, happy: 15, text: 'ראיתם ג׳ירפות, פילים ופינגווינים! הקטנים לא רצו לחזור הביתה.' },
+    { id: 'beach', name: 'חוף הים בתל אביב', icon: '🏖️', cost: 500, hours: 6, happy: 18, text: 'בניתם ארמון חול ענק, קפצתם בגלים ואכלתם אבטיח על החוף 🍉' },
+    { id: 'deadsea', name: 'ים המלח', icon: '🌊', cost: 450, hours: 6, happy: 16, text: 'צפתם על המים בלי לטבוע! מרחתם בוץ על כל הגוף ונראיתם כמו מפלצות 😂' },
+    { id: 'kinneret', name: 'הכנרת', icon: '🛶', cost: 900, hours: 9, happy: 22, text: 'שטתם בקיאקים, עשיתם מנגל על החוף ונהניתם מהנוף של הגולן.' },
+    { id: 'eilat', name: 'חופשה באילת (2 ימים)', icon: '🐠', cost: 4500, hours: 40, happy: 35, text: 'שנרקלתם בשונית האלמוגים, ראיתם דגים צבעוניים, ישנתם במלון עם בריכה. חופשה של פעם בחיים!' },
+  ],
+
+  surnames: ['כהן', 'לוי', 'מזרחי', 'פרץ', 'ביטון', 'אברהם', 'פרידמן', 'דהן', 'אזולאי', 'גולן', 'שפירא', 'רוזנברג', 'אוחיון', 'חדד', 'ברק', 'שטרן', 'כץ', 'בן דוד', 'יוסף', 'עמר', 'נחום', 'וייס', 'הלוי', 'סגל', 'אלון', 'גבאי', 'טל', 'שלום', 'רבינוביץ', 'בירנבאום', 'זילברמן', 'אשכנזי', 'מלכה', 'קליין', 'אדלר', 'הורוביץ', 'בן חיים', 'אוריון', 'לנדאו', 'שושן'],
+  boys: ['יוסף', 'דוד', 'אריאל', 'נועם', 'איתי', 'יהונתן', 'אליה', 'הראל', 'עמית', 'נריה', 'אורי', 'משה', 'יאיר', 'אביתר', 'שילה', 'נדב', 'אהרון', 'עידו'],
+  girls: ['נועה', 'תמר', 'שירה', 'אביגיל', 'הדס', 'מעיין', 'רחל', 'אילה', 'טליה', 'הלל', 'נטע', 'שקד', 'רוני', 'אסנת', 'חנה', 'מיכל', 'יעל', 'אורה'],
+
+  // Goals for the head of the settlement
+  missions: [
+    { id: 'm_syn', text: 'לבנות בית כנסת', icon: '🕍', reward: { budget: 100000 }, check: s => s.has('synagogue') },
+    { id: 'm_groc', text: 'לבנות מכולת', icon: '🛒', reward: { budget: 50000 }, check: s => s.has('grocery') },
+    { id: 'm_play', text: 'לבנות גן שעשועים', icon: '🛝', reward: { budget: 30000 }, check: s => s.has('playground') },
+    { id: 'm_car', text: 'לקנות רכב', icon: '🚗', reward: { money: 5000 }, check: s => !!s.S.car },
+    { id: 'm_work', text: 'לעבוד 5 ימים', icon: '💼', reward: { money: 3000 }, check: s => s.S.stats.workdays >= 5 },
+    { id: 'm_arvit', text: 'ללכת לתפילת ערבית 3 פעמים', icon: '🌙', reward: { budget: 20000 }, check: s => s.S.stats.arvit >= 3 },
+    { id: 'm_ba', text: 'להקים סניף בני עקיבא', icon: '🔵', reward: { budget: 80000 }, check: s => s.has('bneiakiva') },
+    { id: 'm_furn', text: 'לקנות 5 דברים לבית', icon: '🛋️', reward: { money: 4000 }, check: s => s.S.items.length >= 5 },
+    { id: 'm_trip', text: 'לצאת לטיול משפחתי מחוץ ליישוב', icon: '🗺️', reward: { money: 2000 }, check: s => s.S.stats.trips >= 1 },
+    { id: 'm_school', text: 'לבנות בית ספר', icon: '🏫', reward: { budget: 200000 }, check: s => s.has('school') },
+    { id: 'm_houses', text: 'לבנות שכונה חדשה', icon: '🏘️', reward: { budget: 100000 }, check: s => s.has('houses') },
+    { id: 'm_150', text: 'להגיע ל-150 משפחות ביישוב', icon: '👨‍👩‍👧', reward: { budget: 150000 }, check: s => s.S.families >= 150 },
+    { id: 'm_happy', text: 'להגיע ל-75% שמחה ביישוב', icon: '😊', reward: { budget: 120000 }, check: s => s.happy() >= 75 },
+    { id: 'm_10', text: 'לבנות 10 מבנים ציבוריים', icon: '🏗️', reward: { budget: 250000 }, check: s => s.S.built.filter(b => b.done && b.type !== 'houses').length >= 10 },
+    { id: 'm_200', text: 'להגיע ל-200 משפחות ביישוב', icon: '🏙️', reward: { budget: 300000 }, check: s => s.S.families >= 200 },
+  ],
+};

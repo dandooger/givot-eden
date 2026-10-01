@@ -1,0 +1,15 @@
+<!doctype html><meta charset="utf-8"><body style="margin:0;background:#eee">
+<script src="../map-data.js"></script>
+<svg id="s" width="100%" height="100%" style="height:100vh"></svg>
+<script>
+const M=window.MAP,[x0,y0,x1,y1]=M.bounds;const s=document.getElementById('s');
+s.setAttribute('viewBox',`${x0-30} ${y0-30} ${x1-x0+60} ${y1-y0+60}`);
+const C={residential:'#efe6d6',construction:'#e4d7bd',forest:'#9cc48d',farmland:'#e8e2b0',scrub:'#c8d9a8',park:'#b8e0a0'};
+let h='';const d=p=>'M'+p.map(q=>q.join(',')).join('L');
+M.areas.forEach(a=>h+=`<path d="${d(a.p)}Z" fill="${C[a.k]}" stroke="#0002"/>`);
+M.roads.forEach(r=>h+=`<path d="${d(r.p)}" fill="none" stroke="#fff" stroke-width="${r.w}" stroke-linecap="round"/>`);
+M.buildings.forEach(b=>h+=`<path d="${d(b.p)}Z" fill="#d98c6a" stroke="#7a4"/><text x="${b.c[0]}" y="${b.c[1]}" font-size="5" text-anchor="middle">${b.n}</text>`);
+M.plots.forEach(p=>h+=`<rect x="${p.x-10}" y="${p.y-10}" width="20" height="20" fill="#36f5"/>`);
+M.stops.forEach(p=>h+=`<circle cx="${p.p[0]}" cy="${p.p[1]}" r="5" fill="red"/>`);
+s.innerHTML=h;
+</script>
