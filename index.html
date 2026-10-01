@@ -150,6 +150,21 @@ input.t,select.t{width:100%;padding:11px;border-radius:12px;border:2px solid var
 #pick .row{display:flex;gap:8px}
 #pick .row > *{flex:1}
 #pick .chosen{margin:6px 0;font-weight:700;font-size:16px;text-align:center;min-height:22px}
+body.inside #mini{display:none}
+#menu button{position:relative}
+#menu button[data-badge]:not([data-badge=""])::after{content:attr(data-badge);position:absolute;top:-4px;left:-4px;background:#25d366;color:#fff;font-size:11px;font-weight:800;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.shoprow{display:flex;gap:8px;margin-bottom:8px}
+.shoprow input{flex:1}
+.shopprev{min-height:22px;font-size:15px;margin-bottom:8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.chips button{background:var(--sand);padding:6px 10px;font-size:13.5px;font-weight:600}
+.chatg{cursor:pointer}
+.unread{background:#25d366;color:#fff;font-weight:800;font-size:12px;border-radius:10px;padding:2px 8px}
+.chatbox{background:#efe7dd;border-radius:14px;padding:10px;height:min(52vh,420px);overflow-y:auto;margin-bottom:8px;display:flex;flex-direction:column;gap:6px}
+.msg{background:#fff;border-radius:12px 12px 12px 3px;padding:6px 10px;max-width:82%;align-self:flex-start;font-size:14px;line-height:1.35;box-shadow:0 1px 2px #0002}
+.msg b{display:block;font-size:12px;color:#1f7a55}
+.msg small{display:block;font-size:10px;color:#8a8a8a;text-align:left}
+.msg.me{background:#d9fdd3;align-self:flex-end;border-radius:12px 12px 3px 12px}
 #fade{position:fixed;inset:0;z-index:45;background:#0b1020;color:#fff;font-size:26px;font-weight:700;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .45s}
 #fade.on{opacity:.93;pointer-events:auto}
 #game .attr{pointer-events:none}
@@ -199,6 +214,8 @@ body.picking #mini, body.picking #place, body.picking #joyhint, body.picking #ru
   <div id="menu">
     <button data-p="build" title="לבנות">🏗️</button>
     <button data-p="home" title="הבית">🏠</button>
+    <button data-p="shop" title="חנות ותיק">🛒</button>
+    <button data-p="chat" title="וואטסאפ">💬</button>
     <button data-p="family" title="משפחה">👨‍👩‍👧</button>
     <button data-p="town" title="היישוב">🏛️</button>
     <button data-p="missions" title="משימות">📋</button>
@@ -225,7 +242,10 @@ body.picking #mini, body.picking #place, body.picking #joyhint, body.picking #ru
 <script src="map-data.js"></script>
 <script src="terrain.js"></script>
 <script src="data.js"></script>
+<script src="catalog.js"></script>
 <script src="life.js"></script>
+<script src="inside.js"></script>
+<script src="chat.js"></script>
 <script type="module">
 import { buildWorld } from './world3d.js';
 const msg = document.getElementById('loadmsg');

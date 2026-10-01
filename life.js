@@ -44,7 +44,7 @@ function save() {
   if (!S) return;
   try {
     const p = W3.pos(), c = W3.car();
-    S.pos = { x: p.x, z: p.z, mode: p.mode };
+    S.pos = W3.inside() && ui.inside && ui.inside.ret ? { x: ui.inside.ret[0], z: ui.inside.ret[1], mode: 'walk' } : { x: p.x, z: p.z, mode: p.mode };
     if (S.car) S.carAt = { x: c.x, z: c.z, h: c.heading };
     localStorage.setItem(SAVE_KEY, JSON.stringify(S));
   } catch (e) {}
@@ -204,7 +204,7 @@ function prayerName() {
 }
 function guidePray() {
   const [x, z, name] = prayerPlace();
-  setGuide(x, z, name, '🙏', doPray, `🙏 להתפלל ${prayerName()}`);
+  setGuide(x, z, name, '🙏', enterSynagogue, '🕍 להיכנס לתפילה');
   toast(`🧭 לך אל האור הכחול — ${name}`, 'blue', [], 4000);
 }
 function guideHome() { const h = home(); setGuide(h.door[0], h.door[1], 'הבית', '🏠', () => openPanel('home'), '🏠 להיכנס הביתה'); }
@@ -296,6 +296,7 @@ function fridayShopping() {
   else toast('🛒 יום שישי! צריך לקנות אוכל לשבת — אין מכולת ביישוב, אז נוסעים לצור הדסה (דרך השער ביציאה)', 'gold');
 }
 function shabbatIn() {
+  if (S.riding) { S.riding = null; W3.setRide(null); }
   if (W3.pos().mode === 'drive') { W3.exitCar(); toast('🅿️ החנית את הרכב — בשבת לא נוסעים', 'blue'); }
   modal({
     icon: '🕯️🕯️', title: 'יאללה, כניסת שבת!', cls: 'shabbat',
@@ -308,6 +309,8 @@ function fridayMeal() {
   if (S.items.includes('table')) bonus += 3; else notes.push('שולחן שבת גדול');
   if (S.items.includes('plata')) bonus += 3; else notes.push('פלטה (בלי פלטה האוכל קר 🥶)');
   if (S.shopWeek === weekNo()) bonus += 4; else notes.push('קניות לשבת ביום שישי');
+  if (S.shabbatFood === weekNo()) bonus += 5; else notes.push('לבשל חמין או חלות בבית 🍲');
+  if (S.inviteWeek === weekNo()) { bonus += 2; boostTown(1); }
   boostFam(bonus);
   toast(`🍷 <b>סעודת שבת!</b> קידוש, חלות, דגים ושירי שבת עם כל המשפחה. 😊 +${bonus}${notes.length ? `<br><small>מה היה משפר: ${notes.join(', ')}</small>` : ''}`, 'gold', [], 9000);
 }
@@ -371,7 +374,11 @@ function canWork() {
   if (m > 11 * 60) return 'מאוחר מדי ללכת לעבודה היום. מחר בבוקר!';
   return null;
 }
-function doWork(how) { // how: 'car' | 'bus' | 'fields' | 'school'
+function doWork(how) { // how: 'car' | 'bus' | 'tremp' | 'fields' | 'school' — you walk into your work place
+  const why0 = canWork(); if (why0) return toast(why0, 'red');
+  clearGuide(); return enterWork(how);
+}
+function doWorkFade(how) {
   const why = canWork(); if (why) return toast(why, 'red');
   clearGuide();
   const j = job(), late = minOf(S.t) > 9 * 60;
@@ -411,11 +418,13 @@ function canTrip(tr, how) {
   if (S.money < cost) return 'אין לך מספיק כסף 😬';
   if (how === 'walk' && tr.needCar !== false) return 'רחוק מדי ברגל';
   if (how === 'bus' && !tr.bus) return 'לשם אין אוטובוס — צריך רכב';
+  if (how === 'tremp' && !tr.bus) return 'לשם קשה למצוא טרמפ';
   if (how === 'car') { const c = car(); if (c.seats < famSize()) return `לא כולם נכנסים! ב${c.name} יש ${c.seats} מקומות ואתם ${famSize()} 🚐`; }
   return null;
 }
-function exitMenu(how) { // how: 'car' | 'bus' | 'walk'
+function exitMenu(how) { // how: 'car' | 'bus' | 'walk' | 'tremp'
   const j = job(), b = [];
+  if (how === 'car' && car().seats > famSize() && S.trempDay !== today() && !isShabbat(S.t)) { S.trempDay = today(); boostTown(0.5); toast('👍 עצרת בטרמפיאדה ולקחת טרמפיסט — הוא אמר תודה רבה!', 'gold'); }
   const workOut = j.where === 'out' || (j.where === 'school' && !has('school'));
   if (workOut && how !== 'walk') { const w = canWork(); b.push({ t: `${j.icon} לנסוע לעבודה (${j.place})`, fn: () => doWork(how), disabled: w }); }
   if (ui.kidRide && how === 'car') { const k = ui.kidRide; b.push({ t: `🎒 להסיע את ${k.name} לבית הספר בצור הדסה`, fn: () => fade('🚗 נוסעים לצור הדסה...', () => { advanceSilent(25); kidArrived(k, 'car'); returnByCar(); }) }); }
@@ -424,8 +433,8 @@ function exitMenu(how) { // how: 'car' | 'bus' | 'walk'
     const why = canTrip(tr, how);
     b.push({ t: `${tr.icon} ${tr.name} · ${tr.cost ? fmt(tr.cost) : 'חינם'}`, fn: () => doTrip(tr, how), disabled: why });
   }
-  b.push({ t: '↩️ חזרה ליישוב', cls: 'sec', fn: () => { if (how === 'car') returnByCar(); else if (how === 'walk') { const [x, z, h] = W3.gate.back; W3.teleport(x, z, h); ui.gateArmed = false; } } });
-  modal({ icon: how === 'bus' ? '🚌' : how === 'car' ? '🚗' : '🥾', title: how === 'bus' ? 'תחנת האוטובוס — לאן נוסעים?' : 'יוצאים מגבעות עדן — לאן?', html: '<div class="exitlist"></div>', buttons: b, list: true });
+  b.push({ t: '↩️ חזרה ליישוב', cls: 'sec', fn: () => { if (how === 'tremp') { const t = W3.gate.tremp; W3.teleport(t[0], t[1], 0); } else if (how === 'car') returnByCar(); else if (how === 'walk') { const [x, z, h] = W3.gate.back; W3.teleport(x, z, h); ui.gateArmed = false; } } });
+  modal({ icon: how === 'bus' ? '🚌' : how === 'car' ? '🚗' : how === 'tremp' ? '🚙👍' : '🥾', title: how === 'bus' ? 'תחנת האוטובוס — לאן נוסעים?' : how === 'tremp' ? 'הנהג שואל: לאן?' : 'יוצאים מגבעות עדן — לאן?', html: '<div class="exitlist"></div>', buttons: b, list: true });
 }
 function doTrip(tr, how) {
   clearGuide();
@@ -436,6 +445,7 @@ function doTrip(tr, how) {
     if (tr.id === 'tzur') S.shopWeek = weekNo();
     if (how === 'car') returnByCar();
     else if (how === 'bus') W3.teleport(M.entrance[0] + 3, M.entrance[1] + 3, Math.PI);
+    else if (how === 'tremp') { const t = W3.gate.tremp; W3.teleport(t[0], t[1], 0); }
     else { const [x, z, h] = W3.gate.back; W3.teleport(x, z, h); ui.gateArmed = false; }
   }, () => modal({ icon: tr.icon, title: tr.name, text: `${tr.text}${tr.id === 'tzur' ? '<br>🛒 וגם קניתם אוכל לשבת!' : ''}<br><br>💰 ${fmt(cost)}${how === 'bus' ? ' (באוטובוס 🚌)' : ''} · 😊 המשפחה +${tr.happy}`, buttons: [{ t: 'היה כיף! 😄' }] }));
 }
@@ -565,13 +575,17 @@ function placeFamily() {
 let lastActs = '';
 function nearbyActions() {
   if (!S || ui.picking || ui.top) return [];
+  if (W3.inside()) return ui.inside ? ui.inside.spots() : [];
   const p = W3.pos(), here = [p.x, p.z], acts = [], sh = isShabbat(S.t);
   const h = home(), c = W3.car();
   if (p.mode === 'walk') {
     if (ui.guide && ui.guide.onArrive && dist(here, [ui.guide.x, ui.guide.z]) < 14) acts.push([ui.guide.arriveLabel, ui.guide.onArrive]);
-    if (dist(here, h.door) < 6 || dist(here, h.b.c) < 12) acts.push(['🏠 להיכנס הביתה', () => openPanel('home')]);
+    if (dist(here, h.door) < 6 || dist(here, h.b.c) < 12) acts.push(['🏠 להיכנס הביתה', enterHome]);
+    else { let nb = null, nd = 4.5; for (const hh of W3.houses) { if (hh.id === S.house) continue; const d = dist(here, hh.door); if (d < nd) { nd = d; nb = hh; } } if (nb) acts.push([`🚪 לדפוק בדלת — משפחת ${surname(nb.b)}`, () => knock(nb)]); }
+    if (W3.gate.tremp && dist(here, W3.gate.tremp) < 6) acts.push(['👍 לחכות לטרמפ', waitTremp]);
+    if (!has('synagogue') && dist(here, CARAVAN) < 9) acts.push(['🕍 להיכנס לקרוואן (מניין)', enterSynagogue]);
     if (S.car && dist(here, [c.x, c.z]) < 4.5) acts.push([`${car().icon} להיכנס לרכב`, enterCar]);
-    for (const b of S.built) if (dist(here, plotXY(b)) < 15) { const f = D.facilities[b.type]; acts.push([`${b.done ? f.icon : '🏗️'} ${f.name}`, () => { ui.facId = b.id; openPanel('facility'); }]); break; }
+    for (const b of S.built) if (dist(here, plotXY(b)) < 15) { const f = D.facilities[b.type]; if (b.done && b.type === 'synagogue') acts.push(['🕍 להיכנס לבית הכנסת', enterSynagogue]); if (b.done && b.type === 'school') acts.push(['🏫 להיכנס לבית הספר', () => (S.job === 'teacher' && !canWork() ? doWork('school') : enterSchoolVisit())]); acts.push([`${b.done ? f.icon : '🏗️'} ${f.name}`, () => { ui.facId = b.id; openPanel('facility'); }]); break; }
     if (dist(here, M.entrance) < 7) acts.push(['🚌 לחכות לאוטובוס', () => exitMenu('bus')]);
   } else {
     if (p.speed < 1.5) acts.push(['🚶 לצאת מהרכב', exitCar]);
@@ -587,6 +601,7 @@ function nearbyActions() {
   return acts;
 }
 function enterCar() {
+  if (S.riding) { S.riding = null; W3.setRide(null); }
   if (isShabbat(S.t)) return toast('🕯️ שבת! בשבת לא נוסעים ברכב', 'red');
   W3.enterCar();
   if (ui.kidRide) kidInCar();
@@ -616,6 +631,7 @@ function renderGuideChip() {
   $('#gX').onclick = clearGuide;
 }
 function renderPlace() {
+  if (W3.inside()) { $('#place').textContent = ui.inside ? ui.inside.name : ''; return; }
   const p = W3.pos();
   let best = null, bd = 14;
   for (const h of W3.houses) { const d = dist([p.x, p.z], h.door); if (d < bd) { bd = d; best = h; } }
@@ -641,7 +657,7 @@ function modal(o) {
   const c = $('#mcard'), buttons = o.buttons || [{ t: 'סגור' }];
   c.className = 'mcard ' + (o.cls || '') + (o.list ? ' list' : '');
   c.innerHTML = `<div class="e">${o.icon || ''}</div><h3>${o.title}</h3>${o.text ? `<p>${o.text}</p>` : ''}${o.list ? '' : o.html || ''}
-    <div class="acts">${buttons.map((b, i) => `<button class="btn ${b.cls || ''}" data-i="${i}" ${b.disabled ? 'disabled' : ''}>${b.t}${b.disabled ? `<small>${b.disabled}</small>` : ''}</button>`).join('')}</div>`;
+    <div class="acts">${buttons.map((b, i) => `<button class="btn ${b.cls || ''}" data-i="${i}" ${b.disabled ? 'disabled' : ''}>${b.t}${b.disabled ? `<small>${b.disabled}</small>` : b.sub ? `<small>${b.sub}</small>` : ''}</button>`).join('')}</div>`;
   $('#modal').classList.remove('hidden');
   c.querySelectorAll('[data-i]').forEach(btn => (btn.onclick = () => { const b = buttons[+btn.dataset.i]; closeModal(); if (b.fn) b.fn(); }));
 }
@@ -700,6 +716,7 @@ function refreshPanel() {
   if (!ui.panel) return;
   const p = PANELS[ui.panel]();
   $('#sheetTitle').innerHTML = p.title; $('#sheetBody').innerHTML = p.html;
+  if (p.bind) p.bind();
   renderHud();
 }
 $('#menu').onclick = e => { const b = e.target.closest('[data-p]'); if (!b) return; if (b.dataset.p === 'view') return W3.toggleView(); ui.panel === b.dataset.p ? closePanel() : openPanel(b.dataset.p); };
@@ -896,7 +913,7 @@ const ACT = {
   club() { if (S.budget < 100000) return toast('אין מספיק כסף בקופה', 'red'); S.budget -= 100000; S.ba.club = true; toast('🏠 לסניף יש מועדון חדש!', 'gold'); refreshPanel(); },
   paint() { if (S.budget < 15000) return toast('אין מספיק כסף בקופה', 'red'); S.budget -= 15000; S.ba.painted = true; toast('🎨 הסניף צבוע בכחול-לבן!', 'gold'); refreshPanel(); },
   save() { save(); toast('💾 נשמר!', 'gold'); },
-  tohome() { closePanel(); if (W3.pos().mode === 'drive') W3.exitCar(); const h = home(); W3.teleport(h.door[0], h.door[1], Math.atan2(-h.dir[0], -h.dir[1])); },
+  tohome() { closePanel(); if (W3.inside()) { W3.exitInterior(); ui.inside = null; ui.work = null; document.body.classList.remove('inside'); } if (W3.pos().mode === 'drive') W3.exitCar(); const h = home(); W3.teleport(h.door[0], h.door[1], Math.atan2(-h.dir[0], -h.dir[1])); },
   reset() { if (confirm('בטוח? כל המשחק יימחק ונתחיל מההתחלה')) { localStorage.removeItem(SAVE_KEY); location.reload(); } },
 };
 window.addEventListener('keydown', e => { if (e.code === 'Escape') { if (ui.panel) closePanel(); else if (ui.placing) cancelPlacing(); } });
@@ -990,6 +1007,7 @@ function startGame() {
   save();
 }
 function enterGame() {
+  S.inv = S.inv || []; S.furn = S.furn || {};
   W3.attract = false;
   document.body.classList.add('playing');
   if (!W3.MOBILE) { $('#joyhint').classList.add('hidden'); $('#run').classList.add('hidden'); }
@@ -999,6 +1017,8 @@ function enterGame() {
   if (S.car) { W3.setCar(S.car); const h = home(), c = S.carAt || { x: h.park[0], z: h.park[1], h: h.parkHeading }; W3.placeCar(c.x, c.z, c.h); }
   initHud(); placeFamily(); renderHud();
   W3.onFrame = renderActs;
+  if (S.riding) W3.setRide(S.riding);
+  if (window.initChat) initChat();
   W3.frozen = false;
 }
 function goFull() {
